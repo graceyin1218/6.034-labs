@@ -87,99 +87,49 @@ def backchain_to_goal_tree(rules, hypothesis):
     Make sure to use simplify(...) to flatten trees where appropriate.
     """
 
-    toReturnTrees = []
+    toReturnTrees = [hypothesis]
     matches = False
     for rule in rules:
-        print(rule)
         for consequent in rule.consequent():
             variables = match(consequent, hypothesis)
 
             if variables == None:
-                continue
-
-            if variables == {}:
                 continue
 
             matches = True
 
             # the thing you have to prove is true,
             # in order to prove your hypothesis is true
-            antecedent = populate(rule.antecedent(), variables)
+            antecedent = rule.antecedent() #populate(rule.antecedent(), variables)
 
             # the subtree you will return
             tree = None
 
             if isinstance(antecedent, str):
-                tree = backchain_to_goal_tree(rules, antecedent)
+                tree = backchain_to_goal_tree(rules, populate(antecedent, variables))
             elif isinstance(antecedent, AND):
-                tree = AND([simplify(backchain_to_goal_tree(rules, clause)) for clause in antecedent])
+                tree = AND([backchain_to_goal_tree(rules, populate(clause, variables)) for clause in antecedent])
             elif isinstance(antecedent, OR):
-                tree = OR([simplify(backchain_to_goal_tree(rules, clause)) for clause in antecedent])
+                tree = OR([backchain_to_goal_tree(rules, populate(clause, variables)) for clause in antecedent])
             tree = simplify(tree)
-
-            # print(tree)
-            # print()
 
             toReturnTrees.append(tree)
 
     if not matches:
         return hypothesis
-    return simplify(OR([toReturnTrees]))
 
-    """
-    ans = AND()
-    matches = False
-    for rule in rules:
-        for consequent in rule.consequent():
-            # get variables that could make the hypothesis work
-            print(consequent, " " , hypothesis)
-            variables = match(consequent, hypothesis)
-            
-            # if variables 
-            if variables == None:
-                continue
-            if variables == {}:
-                continue
-
-            matches = True
-
-            newHypothesis = populate(rule.antecedent(), variables)
-
-            # AND node
-            if isinstance(newHypothesis, AND):
-                result = AND()
-                for element in newHypothesis:
-                    res = backchain_to_goal_tree(rules, newHypothesis)
-                    result = AND(res, result)
-                ans = simplify(OR(result, ans))
-
-            # OR node
-            elif isinstance(newHypothesis, OR):
-                result = OR()
-                for element in newHypothesis:
-                    res = backchain_to_goal_tree(rules, newHypothesis)
-                    result = OR(res, result)
-                ans = simplify(OR(result, ans))
-
-            # it must be a string
-            else:
-                ans = simplify(OR(backchain_to_goal_tree(rules, newHypothesis), ans))
-    if not matches:
-        return hypothesis
-    return ans
-    """
-    
+    return simplify(simplify(OR([toReturnTrees])))
 
 
 
 # Uncomment this to run your backward chainer:
-print backchain_to_goal_tree(zookeeper_rules, 'opus is a penguin')
+#print backchain_to_goal_tree(zookeeper_rules, 'opus is a penguin')
 
 
 #### Survey #########################################
 
 NAME = "Grace Yin"
-COLLABORATORAS = "Arezu Esmaili, Aneesh Agrawal"
+COLLABORATORS = "Arezu Esmaili, Aneesh Agrawal"
 HOW_MANY_HOURS_THIS_LAB_TOOK = "3"
 WHAT_I_FOUND_INTERESTING = "ANDs shouldn't be used in THENs.."
 WHAT_I_FOUND_BORING = "Well.. I wanted a poker problem... :("
